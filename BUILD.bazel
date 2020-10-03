@@ -1,0 +1,86 @@
+load("@io_bazel_rules_docker//container:container.bzl", "container_layer", "container_image")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
+
+container_layer(
+    name = "awscli_v1_layer",
+    data_path = "..",
+    files = [
+        "@awscli_v1//:all",
+    ],
+)
+
+container_layer(
+    name = "awscli_v2_layer",
+    data_path = "..",
+    files = [
+        "@awscli_v2//:all",
+    ],
+)
+
+container_image(
+    name = "awscli_v1_installer",
+    base = "@python3_base//image",
+    cmd = "",
+    entrypoint = "",
+    layers = [
+        ":awscli_v1_layer"
+    ],
+)
+
+container_image(
+    name = "awscli_v2_installer",
+    base = "@python3_base//image",
+    cmd = "",
+    entrypoint = "",
+    layers = [
+        ":awscli_v2_layer"
+    ],
+)
+
+container_run_and_commit(
+    name = "awscli_v1_install",
+    commands = [
+        "/awscli_v1/install -i /usr/local/aws -b /usr/local/bin/aws",
+        "rm -rf /awscli_v1",
+    ],
+    image = ":awscli_v1_installer.tar",
+)
+
+less_install_commands = [
+    "apt-get update",
+    "apt-get install -y --no-install-recommends less",
+    "apt-get clean",
+]
+
+container_run_and_commit(
+    name = "awscli_v2_install",
+    commands = [
+        "/awscli_v2/aws/install",
+        "rm -rf /awscli_v2",
+    ] + less_install_commands,
+    image = ":awscli_v2_installer.tar",
+)
+
+container_image(
+    name = "awscli_v1_wrapper",
+    base = ":awscli_v1_install_commit.tar",
+)
+
+container_image(
+    name = "awscli_v2_wrapper",
+    base = ":awscli_v2_install_commit.tar",
+)
+
+load("@io_bazel_rules_docker//contrib:test.bzl", "container_test")
+
+container_test(
+    name = "awscli_v1_test",
+    configs = [":awscli_v1.yaml"],
+    image = ":awscli_v1_wrapper",
+)
+
+container_test(
+    name = "awscli_v2_test",
+    configs = [":awscli_v2.yaml"],
+    image = ":awscli_v2_wrapper",
+)

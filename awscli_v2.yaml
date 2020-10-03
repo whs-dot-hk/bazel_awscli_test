@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+commandTests:
+  - name: "aws_test"
+    command: "aws"
+    args: ["--version"]
+    expectedOutput: ["aws-cli/2\\..*"]
+  - name: "less_test"
+    command: "less"
+    args: ["--version"]
+    expectedOutput: ["less \\d+.*"]

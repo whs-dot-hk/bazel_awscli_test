@@ -1,0 +1,7 @@
+schemaVersion: 2.0.0
+
+commandTests:
+  - name: "aws_test"
+    command: "aws"
+    args: ["--version"]
+    expectedOutput: ["aws-cli/1\\..*"]
